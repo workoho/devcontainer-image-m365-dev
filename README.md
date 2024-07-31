@@ -8,22 +8,23 @@
 _This repository contains the build data for a custom devcontainer image, dedicated to Microsoft 365 Developers and
 Sophisticated Admins._
 
-| Metadata                                                | Value                                                |
-| ------------------------------------------------------- | ---------------------------------------------------- |
-| _Categories_                                            | Other                                                |
-| _Image type_                                            | Dockerfile                                           |
-| _Published images_                                      | [`ghcr.io/workoho/devcontainers/m365-dev`][1]        |
-| [_Available image variants_](#available-image-variants) | `latest`, `v1`, `weekly` ([full list][2])            |
-| _Published image architecture(s)_                       | `x86-64`, `aarch64/arm64`                            |
-| _Container host OS support_                             | Linux, macOS, Windows                                |
-| _Container OS_                                          | [devcontainers/base:ubuntu][3]                       |
-| _Languages, platforms_                                  | PowerShell [`7.4` (LTS)][4], Node.js [`20` (LTS)][5] |
+| Metadata                                                | Value                                                                    |
+| ------------------------------------------------------- | ------------------------------------------------------------------------ |
+| _Categories_                                            | Other                                                                    |
+| _Image type_                                            | Dockerfile                                                               |
+| _Published images_                                      | [`ghcr.io/workoho/devcontainers/m365-dev`][1]                            |
+| [_Available image variants_](#available-image-variants) | `latest`, `v1`, `weekly` ([full list][2])                                |
+| _Published image architecture(s)_                       | `x86-64`, `aarch64/arm64`                                                |
+| _Container host OS support_                             | Linux, macOS, Windows                                                    |
+| _Container OS_                                          | [devcontainers/base:ubuntu][3]                                           |
+| _Languages, platforms_                                  | PowerShell [`7.4` (LTS)][4], Node.js [`20` (LTS)][5], Python [`3.12`][6] |
 
 [1]: https://ghcr.io/workoho/devcontainers/m365-dev
 [2]: https://github.com/workoho/devcontainer-image-m365-dev/pkgs/container/devcontainers%2Fm365-dev/versions?filters%5Bversion_type%5D=tagged
 [3]: https://github.com/devcontainers/images/tree/main/src/base-ubuntu
 [4]: https://learn.microsoft.com/en-us/powershell/scripting/install/powershell-support-lifecycle
 [5]: https://nodejs.org/en/about/previous-releases
+[6]: https://devguide.python.org/versions/#versions
 
 ## Using this image
 
@@ -77,30 +78,30 @@ This image comes pre-equipped with the following PowerShell modules:
 
 | Module                                              |     Version Tree     | Resource Link                                                                                                  |
 | --------------------------------------------------- | :------------------: | -------------------------------------------------------------------------------------------------------------- |
-| [Azure Az][6]                                       |       `12.1.x`       | [GitHub](https://github.com/Azure/azure-powershell)                                                            |
-| [EntraExporter][7]                                  |       `2.0.x`        | [GitHub](https://github.com/Microsoft/EntraExporter)                                                           |
-| [ExchangeOnlineManagement][8]                       |       `3.5.x`        | [Microsoft Tech Community](https://techcommunity.microsoft.com/t5/exchange/ct-p/Exchange)                      |
-| [Microsoft.Graph][9]                                |       `2.20.x`       | [GitHub](https://github.com/microsoftgraph/msgraph-sdk-powershell)                                             |
-| [Microsoft.Graph.Beta][10]                          |       `2.20.x`       | [GitHub](https://github.com/microsoftgraph/msgraph-sdk-powershell)                                             |
-| [Microsoft.Graph.Entra][11]                         | `0.12.x-preview`[^1] | [GitHub](https://github.com/microsoftgraph/entra-powershell)                                                   |
-| [Microsoft.Graph.Entra.Beta][12]                    | `0.12.x-preview`[^1] | [GitHub](https://github.com/microsoftgraph/entra-powershell)                                                   |
-| [Microsoft.PowerApps.Administration.PowerShell][13] |       `2.0.x`        | [PowerShell Gallery](https://www.powershellgallery.com/packages/Microsoft.PowerApps.Administration.PowerShell) |
-| [Microsoft.PowerApps.PowerShell][13]                |       `1.0.x`        | [PowerShell Gallery](https://www.powershellgallery.com/packages/Microsoft.PowerApps.PowerShell)                |
-| [MicrosoftTeams][14]                                |       `6.4.x`        | [Microsoft Tech Community](https://techcommunity.microsoft.com/t5/microsoft-teams/ct-p/MicrosoftTeams)         |
-| [PnP.PowerShell][15]                                |       `2.5.x`        | [Microsoft 365 & Power Platform Community](https://aka.ms/sppnp)                                               |
+| [Azure Az][7]                                       |       `12.1.x`       | [GitHub](https://github.com/Azure/azure-powershell)                                                            |
+| [EntraExporter][8]                                  |       `2.0.x`        | [GitHub](https://github.com/Microsoft/EntraExporter)                                                           |
+| [ExchangeOnlineManagement][9]                       |       `3.5.x`        | [Microsoft Tech Community](https://techcommunity.microsoft.com/t5/exchange/ct-p/Exchange)                      |
+| [Microsoft.Graph][10]                               |       `2.21.x`       | [GitHub](https://github.com/microsoftgraph/msgraph-sdk-powershell)                                             |
+| [Microsoft.Graph.Beta][11]                          |       `2.21.x`       | [GitHub](https://github.com/microsoftgraph/msgraph-sdk-powershell)                                             |
+| [Microsoft.Graph.Entra][12]                         | `0.12.x-preview`[^1] | [GitHub](https://github.com/microsoftgraph/entra-powershell)                                                   |
+| [Microsoft.Graph.Entra.Beta][13]                    | `0.12.x-preview`[^1] | [GitHub](https://github.com/microsoftgraph/entra-powershell)                                                   |
+| [Microsoft.PowerApps.Administration.PowerShell][14] |       `2.0.x`        | [PowerShell Gallery](https://www.powershellgallery.com/packages/Microsoft.PowerApps.Administration.PowerShell) |
+| [Microsoft.PowerApps.PowerShell][14]                |       `1.0.x`        | [PowerShell Gallery](https://www.powershellgallery.com/packages/Microsoft.PowerApps.PowerShell)                |
+| [MicrosoftTeams][15]                                |       `6.4.x`        | [Microsoft Tech Community](https://techcommunity.microsoft.com/t5/microsoft-teams/ct-p/MicrosoftTeams)         |
+| [PnP.PowerShell][16]                                |       `2.5.x`        | [Microsoft 365 & Power Platform Community](https://aka.ms/sppnp)                                               |
 
 For a complete list of Microsoft related PowerShell modules, use the [PowerShell Module Browser](https://learn.microsoft.com/en-us/powershell/module/).
 
-[6]: https://learn.microsoft.com/en-us/powershell/azure/new-azureps-module-az
-[7]: https://aka.ms/EntraExporter
-[8]: https://learn.microsoft.com/en-us/powershell/exchange/exchange-online-powershell
-[9]: https://learn.microsoft.com/en-us/powershell/microsoftgraph/?view=graph-powershell-1.0
-[10]: https://learn.microsoft.com/en-us/powershell/microsoftgraph/?view=graph-powershell-beta
-[11]: https://learn.microsoft.com/en-us/powershell/entra-powershell/?view=entra-powershell
-[12]: https://learn.microsoft.com/en-us/powershell/entra-powershell/?view=entra-powershell-beta
-[13]: https://learn.microsoft.com/en-us/power-platform/admin/powerapps-powershell
-[14]: https://learn.microsoft.com/en-us/microsoftteams/teams-powershell-overview
-[15]: https://learn.microsoft.com/en-us/powershell/sharepoint/sharepoint-pnp/sharepoint-pnp-cmdlets
+[7]: https://learn.microsoft.com/en-us/powershell/azure/new-azureps-module-az
+[8]: https://aka.ms/EntraExporter
+[9]: https://learn.microsoft.com/en-us/powershell/exchange/exchange-online-powershell
+[10]: https://learn.microsoft.com/en-us/powershell/microsoftgraph/?view=graph-powershell-1.0
+[11]: https://learn.microsoft.com/en-us/powershell/microsoftgraph/?view=graph-powershell-beta
+[12]: https://learn.microsoft.com/en-us/powershell/entra-powershell/?view=entra-powershell
+[13]: https://learn.microsoft.com/en-us/powershell/entra-powershell/?view=entra-powershell-beta
+[14]: https://learn.microsoft.com/en-us/power-platform/admin/powerapps-powershell
+[15]: https://learn.microsoft.com/en-us/microsoftteams/teams-powershell-overview
+[16]: https://learn.microsoft.com/en-us/powershell/sharepoint/sharepoint-pnp/sharepoint-pnp-cmdlets
 
 ### PowerShell Utilities
 
@@ -129,9 +130,9 @@ This image comes pre-equipped with the following PowerShell complementary utilit
 
 There are other flavors of this dev container image available:
 
-| Flavor                                                                                                | Audience                                                                 |
-| ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| [🧑‍💼 Admin Container for Microsoft 365](https://github.com/workoho/devcontainer-image-m365-admin)       | An image dedicated to Microsoft 365 Admins.                              |
+| Flavor                                                                                                | Audience                                                            |
+| ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| [🧑‍💼 Admin Container for Microsoft 365](https://github.com/workoho/devcontainer-image-m365-admin)       | An image dedicated to Microsoft 365 Admins.                         |
 | [🧑‍🔧 Ultimate Container for Microsoft 365](https://github.com/workoho/devcontainer-image-m365-ultimate) | An image dedicated to Holistic Microsoft 365 & Azure Professionals. |
 
 ## License
