@@ -1,0 +1,57 @@
+# .github/workflows/DEP-01_confirm-dependency-versions.yml
+
+name: Confirm Dependency Versions
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "26 6 * * *"
+
+permissions:
+  issues: write
+
+env:
+  GH_TOKEN: ${{ github.token }} # Required for GitHub CLI.
+
+jobs:
+  validate_nodejs:
+    name: Node.js
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Confirm PowerShell Version
+        shell: pwsh
+        run: |
+          # Confirm the LTS version of Node.js.
+          $ConfirmPreference = 'None'
+          ./scripts/Confirm-NodejsVersion.ps1 -Verbose
+
+  validate_powershell:
+    name: PowerShell
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Confirm PowerShell Version
+        shell: pwsh
+        run: |
+          # Confirm the version of PowerShell.
+          $ConfirmPreference = 'None'
+          ./scripts/Confirm-PowerShellVersion.ps1 -Verbose
+
+  validate_psresources:
+    name: PS Resources
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Confirm Install-PSResource.psd1
+        shell: pwsh
+        run: |
+          # Confirm the version of the PowerShell resources.
+          $ConfirmPreference = 'None'
+          ./scripts/Confirm-PSResourceVersion.ps1 -Verbose

@@ -1,0 +1,299 @@
+# .github/workflows/BUILD-01_build-push-devcontainer-image.yml
+
+# Workflow Name: Build and Push Dev Container Image
+# Description: This workflow is responsible for building and pushing Dev Container images to GitHub Container Registry (GHCR).
+# It triggers on manual dispatch, a schedule (every Monday at 3:00 UTC), and tag pushes that match 'v*'.
+# The workflow ensures that only the latest run for a particular branch or tag is executed, cancelling any in-progress runs.
+
+name: "Build and Push Dev Container Image"
+
+# Concurrency ensures that only one workflow run is in progress for a given branch/tag.
+# This prevents race conditions during build and push operations.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Triggers for the workflow
+on:
+  workflow_dispatch: # Allows manual triggering of the workflow.
+  schedule:
+    - cron: "23 3 * * Mon" # This updates the `weekly` image tag.
+  push:
+    tags:
+      - "v*" # Trigger for tags that start with 'v'.
+
+# Environment variables used across all jobs.
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/devcontainers/m365-dev
+
+jobs:
+  build:
+    name: "Build ${{ matrix.platform }} Image"
+    permissions:
+      contents: read # Required for checking out the code.
+      packages: write # Required for pushing images to GHCR.
+      attestations: write # Allows writing attestations to images, if used.
+
+    strategy:
+      fail-fast: false
+      matrix:
+        builder:
+          - ubuntu-22.04
+          - workoho-4vcpu-ubuntu-2204-arm
+        platform:
+          - amd64
+          - arm64
+        exclude:
+          - builder: ubuntu-22.04
+            platform: arm64
+          - builder: workoho-4vcpu-ubuntu-2204-arm
+            platform: amd64
+
+    outputs:
+      primary_tag_amd64: ${{ steps.dcmeta.outputs.primary_tag_amd64 }}
+      primary_tag_arm64: ${{ steps.dcmeta.outputs.primary_tag_arm64 }}
+
+    runs-on: ${{ matrix.builder }}
+
+    concurrency:
+      group: ${{ matrix.platform }}
+
+    steps:
+      - name: Update skopeo
+        run: |
+          set -e
+
+          REPO_URL="https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/unstable/xUbuntu_22.04"
+          sudo sh -c "echo 'deb ${REPO_URL}/ /' > /etc/apt/sources.list.d/skopeo.list"
+          curl -fsSL ${REPO_URL}/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/skopeo.gpg > /dev/null
+
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install skopeo
+          skopeo --version
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          logout: false
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          # list of Docker images to use as base name for tags
+          images: ${{ env.IMAGE_NAME }}
+          # generate Docker tags based on the following events/attributes
+          tags: |
+            type=schedule,pattern=weekly
+            type=semver,pattern={{version}}
+            type=semver,pattern=v{{major}}.{{minor}}
+            type=semver,pattern=v{{major}},enable=${{ !startsWith(github.ref, 'refs/tags/v0.') }}
+            type=ref,event=branch
+            type=ref,event=pr
+          sep-tags: ","
+          flavor: |
+            latest=false
+            prefix=
+            suffix=-${{ matrix.platform }}
+
+      - name: Update Tags to Fit into devcontainers/cli format
+        id: dcmeta
+        run: |
+          prefix="${{ env.IMAGE_NAME }}"
+          input_list="$DOCKER_METADATA_OUTPUT_TAGS"
+          delimiter=","
+
+          result_list=$(echo "$input_list" | sed "s|${prefix}:||g")
+
+          echo "primary_tag_${{ matrix.platform }}=${result_list%%,*}" >> "$GITHUB_OUTPUT"
+          echo "tags=$result_list" >> "$GITHUB_OUTPUT"
+
+      - name: "[${{ matrix.platform }}] Pre-build Dev Container Image"
+        uses: devcontainers/ci@v0.3
+        env:
+          # see: https://github.com/devcontainers/ci/issues/191#issuecomment-1603857155
+          BUILDX_NO_DEFAULT_ATTESTATIONS: true
+        with:
+          subFolder: .devcontainer/src
+          configFile: .devcontainer/src/devcontainer.json
+          platform: linux/${{ matrix.platform }}
+          cacheFrom: ${{ env.IMAGE_NAME }}
+          imageName: ${{ env.IMAGE_NAME }}
+          imageTag: ${{ steps.dcmeta.outputs.tags }}
+          push: always
+          skipContainerUserIdUpdate: true
+
+  post-build:
+    name: "${{ matrix.platform }} Digest Collection"
+    needs: build
+    permissions:
+      packages: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        builder:
+          - ubuntu-22.04
+          - workoho-4vcpu-ubuntu-2204-arm
+        platform:
+          - amd64
+          - arm64
+        exclude:
+          - builder: ubuntu-22.04
+            platform: arm64
+          - builder: workoho-4vcpu-ubuntu-2204-arm
+            platform: amd64
+
+    runs-on:
+      - ${{ matrix.builder }}
+
+    concurrency:
+      group: ${{ matrix.platform }}
+
+    steps:
+      - name: Export digests
+        run: |
+          if [ "${{ matrix.platform }}" == "amd64" ]; then
+            primary_tag="${{ needs.build.outputs.primary_tag_amd64 }}"
+          elif [ "${{ matrix.platform }}" == "arm64" ]; then
+            primary_tag="${{ needs.build.outputs.primary_tag_arm64 }}"
+          fi
+          image_name="${{ env.IMAGE_NAME }}:$primary_tag"
+          echo "Pulling image: $image_name"
+          docker pull "$image_name"
+          docker images
+          echo "Inspecting image: $image_name"
+          mkdir -p /tmp/digests
+          digests=$(docker inspect --format='{{json .RepoDigests}}' "$image_name" | jq -r '.[]')
+          for digest in $digests; do
+            digest_sha="${digest#*@}"
+            touch "/tmp/digests/${digest_sha#sha256:}"
+            echo "Found digest: $digest_sha"
+          done
+
+      - name: Upload digests
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ matrix.platform }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge:
+    name: Update multi-layer image tags
+    needs: post-build
+    permissions:
+      contents: read # Required for checking out the code.
+      packages: write # Required for pushing images to GHCR.
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digests-*
+          merge-multiple: true
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          logout: false
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          # list of Docker images to use as base name for tags
+          images: ${{ env.IMAGE_NAME }}
+          # generate Docker tags based on the following events/attributes
+          tags: |
+            type=schedule,pattern=weekly
+            type=semver,pattern={{version}}
+            type=semver,pattern=v{{major}}.{{minor}}
+            type=semver,pattern=v{{major}},enable=${{ !startsWith(github.ref, 'refs/tags/v0.') }}
+            type=ref,event=branch
+            type=ref,event=pr
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v1.') && !contains(github.ref, '-') }}
+          flavor: |
+            latest=false
+            prefix=
+            suffix=
+
+      - name: Create Manifest List and Push
+        working-directory: /tmp/digests
+        run: |
+          docker buildx imagetools create \
+            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf '${{ env.IMAGE_NAME }}@sha256:%s ' *)
+
+      - name: Inspect Manifest List for Each Tag
+        run: |
+          tags=$(jq -cr '.tags[]' <<< "$DOCKER_METADATA_OUTPUT_JSON")
+          for tag in $tags; do
+            # Inspecting image: $tag
+            docker buildx imagetools inspect $tag
+          done
+
+  publish-release:
+    name: Publish release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs:
+      - merge
+    permissions:
+      contents: write
+      packages: read
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate Release Notes Introduction
+        id: release_notes
+        run: |
+          if [[ "${{ github.ref_name }}" == *-* ]]; then
+            BODY="This is a pre-release version of the Admin Container for Microsoft 365. It is not recommended for production use."
+          else
+            BODY="This is a release version of the Admin Container for Microsoft 365 and may be used in production environments."
+          fi
+          BODY+="\n\nVisit the [container registry](https://${{ env.IMAGE_NAME }}) to learn more."
+          BODY+="\n\nAlso note the [README](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/README.md) of this particular release."
+          BODY+="\n\nAutomatically generated release notes:\n\n"
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$BODY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }} of the Admin Container for Microsoft 365 Image
+          draft: ${{ !contains(github.ref_name, '-') }}
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          make_latest: ${{ !contains(github.ref_name, '-') }}
+          generate_release_notes: true
+          body: ${{ steps.release_notes.outputs.body }}

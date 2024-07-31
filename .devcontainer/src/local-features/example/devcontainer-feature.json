@@ -1,0 +1,22 @@
+{
+  "id": "example",
+  "version": "0.1.0",
+  "name": "Example Devcontainer Feature",
+  "description": "This is an example feature, hosted locally with the devcontainer.",
+  "documentationURL": "https://github.com",
+  "licenseURL": "https://github.com",
+  "keywords": [
+    "example"
+  ],
+  "options": {
+    "version": {
+      "type": "string",
+      "default": "latest",
+      "description": "Select the version of Example to install."
+    }
+  },
+  "install": {
+    "app": "",
+    "file": "install.sh"
+  }
+}

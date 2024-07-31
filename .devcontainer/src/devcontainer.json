@@ -1,0 +1,50 @@
+{
+  "name": "🧑‍💻 Development Container for Microsoft 365",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "args": {
+      "VARIANT": "ubuntu",
+      // set devcontainer-cli arg for Dockerfile
+      "devcontainercli": "true"
+    }
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/jpawlowski/devcontainer-features/powershell-extended:2": {
+      "version": "7.4",
+      "setUserDefaultShell": true,
+      "setRootDefaultShell": false,
+      "repositories": "PSGallery",
+      "resources": "Az@[12.1,12.2); EntraExporter@[2.0,2.1); ExchangeOnlineManagement@[3.5,3.6); MSCloudLoginAssistant@[1.1,1.2); Microsoft.Graph@[2.21,2.22); Microsoft.Graph.Beta@[2.21,2.22); Microsoft.Graph.Entra@[0.12-preview,1.1); Microsoft.Graph.Entra.Beta@[0.12-preview,1.1); Microsoft.PowerApps.Administration.PowerShell@[2.0,2.1); Microsoft.PowerApps.PowerShell@[1.0,1.1); MicrosoftTeams@[6.4,6.5); PnP.PowerShell@[2.5,2.6); Microsoft.PowerShell.Crescendo@[1.1,1.2); Pester@[5.6,5.7); PSDesiredStateConfiguration@[2.0,2.1); platyPS@[2.0-preview1,2.1); Microsoft.PowerShell.SecretManagement@[1.1,1.2); Microsoft.PowerShell.SecretStore@[1.0,1.1); Microsoft.PowerShell.TextUtility@[0.1,1.1)"
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20",
+      "nodeGypDependencies": true,
+      "nvmInstallPath": "/usr/local/share/nvm",
+      "nvmVersion": "latest",
+      "installYarnUsingApt": false
+    },
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.12",
+      "installTools": true,
+      // "toolsToInstall": "flake8,autopep8,black,yapf,mypy,pydocstyle,pycodestyle,bandit,pipenv,virtualenv,pytest,pylint",
+      "optimize": false,
+      "enableShared": false,
+      "installPath": "/usr/local/python",
+      "installJupyterlab": false
+      // "configureJupyterlabAllowOrigin": "",
+      // "httpProxy": ""
+    },
+    "ghcr.io/devcontainers/features/sshd:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "files.defaultLanguage": "powershell",
+        "powershell.integratedConsole.focusConsoleOnExecute": false,
+        "powershell.integratedConsole.showOnStartup": false,
+        "terminal.integrated.defaultProfile.linux": "pwsh"
+      }
+    }
+  }
+}

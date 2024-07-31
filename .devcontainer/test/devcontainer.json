@@ -1,0 +1,4 @@
+{
+  "name": "[✅ PRE-BUILT] Live Test of the Development Container for Microsoft 365",
+  "image": "ghcr.io/workoho/devcontainers/m365-dev:main"
+}
