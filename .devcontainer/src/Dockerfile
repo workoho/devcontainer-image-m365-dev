@@ -20,6 +20,8 @@ RUN \
     && apt-get -y upgrade --no-install-recommends \
     # Install common admin command line tools
     && apt-get install -y --no-install-recommends \
+        # Common tools
+        fontconfig \
         # Networking tools
         dnsutils \
         iputils-arping \
