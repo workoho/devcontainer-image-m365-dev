@@ -31,6 +31,8 @@ RUN \
         # Terminal tools
         screen \
         tmux \
+    # Generate Font Cache
+    && fc-cache -f -v \
     # Clean up
     && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/* \
     # Move first run notice to right spot
