@@ -10,6 +10,15 @@
   },
   "features": {
     "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/jpawlowski/devcontainer-features/cascadia-code:1": {
+      "version": "latest",
+      "installFontconfig": true,
+      "installVariableTTF": true,
+      "installVariableWOFF2": true,
+      "installStaticTTF": false,
+      "installStaticOTF": false,
+      "installStaticWOFF2": false
+    },
     "ghcr.io/jpawlowski/devcontainer-features/powershell-extended:2": {
       "version": "7.4",
       "setUserDefaultShell": true,
