@@ -13,11 +13,11 @@
     "ghcr.io/jpawlowski/devcontainer-features/cascadia-code:1": {
       "version": "latest",
       "installFontconfig": true,
-      "installVariableTTF": true,
-      "installVariableWOFF2": true,
-      "installStaticTTF": false,
+      "installStaticTTF": true,
       "installStaticOTF": false,
-      "installStaticWOFF2": false
+      "installStaticWOFF2": false,
+      "installVariableTTF": false,
+      "installVariableWOFF2": false
     },
     "ghcr.io/jpawlowski/devcontainer-features/powershell-extended:2": {
       "version": "7.4",
